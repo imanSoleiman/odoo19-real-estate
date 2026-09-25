@@ -76,6 +76,14 @@ class EstatePropertyOffer(models.Model):
                 
     def action_accept(self):
         for record in self:
+            if (
+                record.date_deadline
+                and record.date_deadline < fields.Date.today()
+            ):
+                raise UserError(
+                    "You cannot accept an expired offer."
+                )
+
             other_accepted_offer = record.property_id.offer_ids.filtered(
                 lambda offer: offer.status == "accepted"
                 and offer.id != record.id
@@ -87,7 +95,6 @@ class EstatePropertyOffer(models.Model):
                 )
 
             record.status = "accepted"
-
             record.property_id.buyer_id = record.partner_id
             record.property_id.selling_price = record.price
             record.property_id.state = "offer_accepted"
