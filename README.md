@@ -33,7 +33,6 @@ The goal of the project is to demonstrate practical understanding of the Odoo fr
 - [Git and GitHub Workflow](#git-and-github-workflow)
 - [Troubleshooting](#troubleshooting)
 - [Important Technical Notes](#important-technical-notes)
-- [Possible Future Improvements](#possible-future-improvements)
 - [Author](#author)
 
 ---
@@ -2175,22 +2174,6 @@ Administrators
 
 ---
 
-# Possible Future Improvements
-
-These are possible extensions and are **not required for the current assessment**.
-
-- Property images
-- Offer expiration cron automation
-- Email notifications
-- PDF property reports
-- Automated tests
-- Dashboard and statistics
-- Commission configuration by property type
-- Multiple commission rules
-- Offer history/reporting
-- Additional accounting configuration
-
----
 
 # Final Assessment Checklist
 
