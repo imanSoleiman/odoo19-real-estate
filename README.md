@@ -1852,55 +1852,6 @@ Restart Odoo after Python changes.
 
 ---
 
-## Invoice Is Created but Shows Only Commission
-
-This is expected.
-
-The invoice represents the real estate agency's charges:
-
-```text
-Commission
-+
-Administrative Fee
-```
-
-The full property selling price remains in the Real Estate property record.
-
----
-
-## Invoice Is Draft
-
-This is also expected.
-
-The custom code creates a Draft invoice.
-
-Normal workflow:
-
-```text
-Draft
-→ Posted
-→ Paid
-```
-
----
-
-## Deadline Calculation Error Between Datetime and Date
-
-`create_date` is a Datetime field while `date_deadline` is a Date field.
-
-Convert the creation date before date arithmetic:
-
-```python
-create_date = (
-    fields.Date.to_date(record.create_date)
-    if record.create_date
-    else fields.Date.today()
-)
-```
-
-This prevents mixing incompatible date and datetime types.
-
----
 
 ## XML Model Name Errors
 
@@ -1922,40 +1873,6 @@ Avoid inserting unwanted spaces/newlines inside technical values.
 
 ---
 
-## Access Denied
-
-Verify:
-
-```text
-security/ir.model.access.csv
-```
-
-and confirm the model has appropriate permissions for:
-
-```text
-base.group_user
-```
-
-Also remember:
-
-```text
-res.users
-```
-
-represents local Odoo users.
-
-A local user created in:
-
-```text
-Settings
-→ Users & Companies
-→ Users
-```
-
-is not automatically an account on `odoo.com`.
-
----
-
 ## PostgreSQL Authentication Error
 
 If Odoo reports a PostgreSQL authentication error such as:
@@ -1973,47 +1890,6 @@ odoo.conf
 and ensure the configured PostgreSQL role and authentication settings match the running PostgreSQL server.
 
 Do not commit database credentials to GitHub.
-
----
-
-## Git Warns About an Embedded Repository
-
-If Git displays:
-
-```text
-warning: adding embedded git repository
-```
-
-there is another `.git` folder inside a folder being added.
-
-The final project repository should contain normal project folders such as:
-
-```text
-estate/
-estate_account/
-```
-
-without unintended nested Git repositories.
-
----
-
-## `cd custom modules` Fails in PowerShell
-
-A path containing spaces must be quoted.
-
-Example:
-
-```powershell
-cd "custom modules"
-```
-
-The actual project folder is:
-
-```powershell
-cd C:\odoo\custom_modules
-```
-
-because the folder name uses an underscore.
 
 ---
 
