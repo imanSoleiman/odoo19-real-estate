@@ -2,7 +2,7 @@
 
 A complete **Real Estate Management application for Odoo 19 Community**, developed as part of a technical assessment.
 
-The project is based on the Odoo Server Framework 101 Real Estate tutorial and extends it with additional business functionality, workflow validation, automatic references, offer expiration protection, commission calculation, and accounting integration.
+The project is based on the Odoo Server Framework 101 Real Estate tutorial and extends it with additional business functionality, workflow validation, automatic references, offer expiration protection, commission calculation, role-based Agent/Manager security, and accounting integration.
 
 The goal of the project is to demonstrate practical understanding of the Odoo framework, Python models, ORM relationships, XML views, security, QWeb/Kanban, inheritance, PostgreSQL-backed business logic, and integration between Odoo modules.
 
@@ -126,7 +126,9 @@ It contains:
 - List views
 - Form views
 - Kanban/QWeb view
-- Security rules
+- Role-based security
+- Agent and Manager access levels
+- Record rules for salesperson-specific property visibility
 - Automatic property references
 - Commission calculation
 - Offer expiration protection
@@ -365,11 +367,14 @@ The module inherits from:
 _inherit = "estate.property"
 ```
 
-When `action_sold()` is executed, the module creates a customer invoice using:
+When `action_sold()` is executed, the module first verifies that the current user has write access to the property and then creates a customer invoice.
 
 ```python
-self.env["account.move"].create(...)
+self.check_access("write")
+self.env["account.move"].sudo().create(...)
 ```
+
+The explicit access check protects the Real Estate record, while the controlled `sudo()` call allows an authorized Real Estate user to generate the invoice without granting general Accounting permissions.
 
 The invoice type is:
 
@@ -593,6 +598,89 @@ selling_price * 0.06
 ```
 
 This improves maintainability and makes the business rule visible in the Real Estate application.
+
+---
+
+## 5. Agent and Manager Role-Based Security
+
+The Real Estate application includes two business roles:
+
+```text
+Agent
+Manager
+```
+
+### Agent
+
+An Agent represents a real estate salesperson.
+
+Agents can:
+
+- Access the Real Estate application
+- See properties assigned to themselves
+- See unassigned properties
+- Manage offers for properties they are allowed to access
+- Read Property Types and Tags
+
+Agents cannot:
+
+- See properties assigned to another agent
+- Access the Real Estate Settings menu
+- Modify Property Types or Tags
+- Update or install Odoo modules
+
+### Manager
+
+A Real Estate Manager has broader access.
+
+Managers can:
+
+- See all Real Estate properties
+- Manage all offers
+- Access Real Estate Settings
+- Create, edit, and delete Property Types
+- Create, edit, and delete Tags
+
+The Real Estate Manager role is separate from the global Odoo Administrator role. Module installation and module upgrades remain system-administration operations.
+
+### Access Rights and Record Rules
+
+Model-level permissions are defined in:
+
+```text
+estate/security/ir.model.access.csv
+```
+
+Security groups and record rules are defined in:
+
+```text
+estate/security/security.xml
+```
+
+The Agent property rule allows access to:
+
+```text
+salesperson_id = current user
+OR
+salesperson_id is empty
+```
+
+This means an Agent can work with their own properties and unassigned properties, but cannot access another agent's assigned properties.
+
+The Manager role has unrestricted access to Real Estate property records.
+
+### Secure Invoice Creation
+
+An Agent should not need general Accounting permissions simply to complete a property sale.
+
+The accounting integration therefore verifies write access to the property before creating the invoice with controlled elevated access:
+
+```python
+self.check_access("write")
+self.env["account.move"].sudo().create(...)
+```
+
+This keeps the Real Estate permission check in place while allowing the system to generate the required invoice.
 
 ---
 
@@ -869,6 +957,7 @@ odoo19-real-estate/
 │   │   └── res_users.py
 │   │
 │   ├── security/
+│   │   ├── security.xml
 │   │   └── ir.model.access.csv
 │   │
 │   └── views/
@@ -1304,6 +1393,47 @@ Blocked
 
 ---
 
+## Test 9: Agent Access
+
+Create two properties:
+
+```text
+Property A → Salesperson = Agent A
+Property B → Salesperson = Agent B
+```
+
+Login as Agent A.
+
+Expected result:
+
+```text
+Property A visible
+Property B hidden
+Real Estate Settings hidden
+```
+
+An unassigned property should also remain visible to Agent A.
+
+---
+
+## Test 10: Manager Access
+
+Login as a Real Estate Manager.
+
+Expected result:
+
+```text
+All properties visible
+All offers accessible
+Real Estate Settings visible
+Property Types editable
+Tags editable
+```
+
+The Manager role should be tested separately from the global Odoo Administrator role.
+
+---
+
 # Business Rules and Validation
 
 The final project includes the following rules.
@@ -1322,6 +1452,9 @@ The final project includes the following rules.
 | Property deletion | Only New or Canceled properties can be deleted |
 | Property reference | Generated automatically using `ir.sequence` |
 | Commission amount | Computed from selling price and commission rate |
+| Agent property access | Own and unassigned properties only |
+| Manager property access | All Real Estate properties |
+| Real Estate Settings | Manager only |
 
 ---
 
@@ -1425,20 +1558,56 @@ This groups cards by property type and prevents moving cards between groups usin
 
 # Security
 
-Access rights are configured in:
+The project uses both model-level access rights and record-level security.
+
+Security groups and record rules are defined in:
+
+```text
+estate/security/security.xml
+```
+
+Model permissions are defined in:
 
 ```text
 estate/security/ir.model.access.csv
 ```
 
-The project grants internal Odoo users the required permissions for:
+The application contains two Real Estate roles:
 
 ```text
-estate.property
-estate.property.type
-estate.property.tag
-estate.property.offer
+Agent
+Manager
 ```
+
+## Agent
+
+An Agent can work with:
+
+```text
+Their own properties
+Unassigned properties
+Offers related to accessible properties
+```
+
+An Agent cannot see properties assigned to another agent.
+
+The Settings menu is hidden from Agents.
+
+Property Types and Tags are readable by Agents but configuration changes are reserved for Managers.
+
+## Manager
+
+A Manager can:
+
+```text
+See all properties
+Manage all offers
+Access Real Estate Settings
+Manage Property Types
+Manage Tags
+```
+
+## Access Control Layers
 
 Odoo CRUD permissions are:
 
@@ -1449,7 +1618,7 @@ Update
 Delete
 ```
 
-In Odoo access files these correspond to:
+In `ir.model.access.csv` they correspond to:
 
 ```text
 perm_create
@@ -1457,6 +1626,20 @@ perm_read
 perm_write
 perm_unlink
 ```
+
+Record rules then restrict which individual records a user can access.
+
+The Agent property rule is based on the assigned salesperson:
+
+```text
+salesperson_id = current user
+OR
+salesperson_id is empty
+```
+
+The Manager role can access all Real Estate property records.
+
+The Real Estate Manager role does not replace the global Odoo Administrator role. System operations such as module installation and module upgrades remain restricted to Odoo administrators.
 
 ---
 
@@ -2013,8 +2196,6 @@ Administrators
 These are possible extensions and are **not required for the current assessment**.
 
 - Property images
-- Role-based record rules
-- Salesperson-specific property visibility
 - Offer expiration cron automation
 - Email notifications
 - PDF property reports
@@ -2049,6 +2230,12 @@ Delete Protection                 ✅
 Actions                           ✅
 State Workflow                    ✅
 Security Access                   ✅
+Agent Role                        ✅
+Manager Role                      ✅
+Role-Based Record Rules           ✅
+Salesperson Property Visibility   ✅
+Manager-Only Settings             ✅
+Secure Invoice Permission Flow    ✅
 List View                         ✅
 Form View                         ✅
 Search View                       ✅
