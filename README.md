@@ -11,7 +11,6 @@ The goal of the project is to demonstrate practical understanding of the Odoo fr
 ## Table of Contents
 
 - [Project Overview](#project-overview)
-- [Assessment Scope](#assessment-scope)
 - [Main Modules](#main-modules)
 - [Main Features](#main-features)
 - [Property Workflow](#property-workflow)
@@ -81,21 +80,6 @@ Mark Property as Sold
       ↓
 Customer Invoice Created
 ```
-
----
-
-# Assessment Scope
-
-The technical assessment required:
-
-- Understanding the Odoo ERP framework.
-- Building the Real Estate module on Odoo 19 Community.
-- Completing the official Real Estate tutorial concepts.
-- Adding new functionality to the created module.
-- Understanding the code well enough to explain it during a technical/oral discussion.
-
-The final implementation contains both the original tutorial functionality and additional custom features.
-
 ---
 
 # Main Modules
