@@ -9,6 +9,10 @@ class ResUsers(models.Model):
         "salesperson_id",
         string="Properties",
         domain=[
-            ("state", "in", ["new", "offer_received"]),
+            (
+                "state",
+                "in",
+                ["new", "offer_received"],
+            )
         ],
     )
