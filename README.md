@@ -2,7 +2,7 @@
 
 A complete **Real Estate Management application for Odoo 19 Community**, developed as part of a technical assessment.
 
-The project is based on the Odoo Server Framework 101 Real Estate tutorial and extends it with additional business functionality, workflow validation, automatic references, offer expiration protection, commission calculation, role-based Agent/Manager security, and accounting integration.
+The project is based on the Odoo Server Framework 101 Real Estate tutorial and extends it with additional business functionality, workflow validation, automatic references, offer expiration protection, commission calculation, role-based Agent/Manager security, accounting integration, and multi-estate PDF reporting.
 
 The goal of the project is to demonstrate practical understanding of the Odoo framework, Python models, ORM relationships, XML views, security, QWeb/Kanban, inheritance, PostgreSQL-backed business logic, and integration between Odoo modules.
 
@@ -16,6 +16,7 @@ The goal of the project is to demonstrate practical understanding of the Odoo fr
 - [Property Workflow](#property-workflow)
 - [Offer Workflow](#offer-workflow)
 - [Accounting Integration](#accounting-integration)
+- [Multi-Estate PDF Reporting](#multi-estate-pdf-reporting)
 - [Custom Features Added](#custom-features-added)
 - [Odoo Concepts Used](#odoo-concepts-used)
 - [Data Model and Relationships](#data-model-and-relationships)
@@ -115,6 +116,7 @@ It contains:
 - Automatic property references
 - Commission calculation
 - Offer expiration protection
+- Multi-estate PDF reporting
 
 ## `estate_account`
 
@@ -438,6 +440,73 @@ Posted ≠ Paid
 ```
 
 Posting validates the invoice. Payment is a separate step.
+
+---
+
+
+# Multi-Estate PDF Reporting
+
+The Real Estate module includes a QWeb PDF report for property details.
+
+The report is defined in:
+
+```text
+estate/report/estate_property_report.xml
+```
+
+It is registered as an Odoo `ir.actions.report` and bound to the `estate.property` model.
+
+The report can be generated for a single property or for several selected properties at the same time.
+
+Example workflow:
+
+```text
+Real Estate
+→ Properties
+→ Select one or more properties
+→ Print
+→ Estate Details
+→ PDF generated
+```
+
+For multiple properties, the QWeb template iterates over the selected recordset:
+
+```xml
+<t t-foreach="docs" t-as="property">
+```
+
+This allows one PDF to contain the details of all selected estates.
+
+The report includes:
+
+- Property reference
+- Property name
+- Property type
+- Status
+- Postcode
+- Availability date
+- Expected price
+- Best offer
+- Selling price
+- Commission rate
+- Commission amount
+- Bedrooms
+- Living area
+- Garden area
+- Total area
+- Facades
+- Garage
+- Garden
+- Garden orientation
+- Salesperson
+- Buyer
+- Tags
+- Description
+- Offers table
+
+If a property has no offers, the report displays a message indicating that no offers have been received.
+
+The report is available from both the property form view and the property list view. Selecting multiple properties in the list view and printing `Estate Details` generates one PDF containing all selected properties.
 
 ---
 
@@ -943,6 +1012,9 @@ odoo19-real-estate/
 │   │   ├── security.xml
 │   │   └── ir.model.access.csv
 │   │
+│   ├── report/
+│   │   └── estate_property_report.xml
+│   │
 │   └── views/
 │       ├── estate_property_views.xml
 │       ├── estate_property_offer_views.xml
@@ -1175,6 +1247,7 @@ Upgrade the module after changes involving:
 - XML views
 - Security files
 - Data XML
+- Report XML
 - Manifest changes
 - Database schema changes
 
@@ -1417,6 +1490,42 @@ The Manager role should be tested separately from the global Odoo Administrator 
 
 ---
 
+
+## Test 11: Multi-Estate PDF Report
+
+Open the property list view and select two or more properties.
+
+Then:
+
+```text
+Print
+→ Estate Details
+```
+
+Expected result:
+
+```text
+One PDF is generated
+All selected properties are included in the same PDF
+Each selected estate has its own detailed report section
+```
+
+Also test a single property from the form view:
+
+```text
+Open Property
+→ Print
+→ Estate Details
+```
+
+Expected result:
+
+```text
+PDF generated successfully for the selected property
+```
+
+---
+
 # Business Rules and Validation
 
 The final project includes the following rules.
@@ -1536,6 +1645,36 @@ Example configuration:
 ```
 
 This groups cards by property type and prevents moving cards between groups using drag-and-drop.
+
+---
+
+
+## PDF Report
+
+The module includes an `Estate Details` QWeb PDF report.
+
+It can be printed from:
+
+```text
+Property Form View
+Property List View
+```
+
+From the List view, several properties can be selected and printed at the same time.
+
+The report action is bound to:
+
+```text
+estate.property
+```
+
+and uses:
+
+```text
+report_type = qweb-pdf
+```
+
+The QWeb template iterates over `docs`, so all selected property records are included in the generated PDF.
 
 ---
 
@@ -2091,6 +2230,8 @@ Automatic Property Reference      ✅
 Expired Offer Protection          ✅
 Single Accepted Offer Protection  ✅
 Commission Calculation            ✅
+Multi-Estate PDF Reporting        ✅
+Single-Property PDF Reporting     ✅
 Git / GitHub                      ✅
 ```
 
