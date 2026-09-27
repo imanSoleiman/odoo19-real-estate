@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_report_estate_property" model="ir.actions.report">
+        <field name="name">Estate Details</field>
+        <field name="model">estate.property</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">estate.report_estate_property</field>
+        <field name="report_file">estate.report_estate_property</field>
+        <field name="binding_model_id" ref="model_estate_property"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">list,form</field>
+    </record>
+    <template id="report_estate_property">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="property">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center mb-4">
+                            <h2>Estate Details Report</h2>
+                            <h4>
+                                <span t-field="property.reference"/>
+                                -
+                                <span t-field="property.name"/>
+                            </h4>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Property Type:</strong>
+                                <span t-field="property.property_type_id"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Status:</strong>
+                                <span t-field="property.state"/>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Postcode:</strong>
+                                <span t-field="property.postcode"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Availability Date:</strong>
+                                <span t-field="property.date_availability"/>
+                            </div>
+                        </div>
+                        <h4 class="mt-4">Pricing</h4>
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>Expected Price</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.expected_price"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Best Offer</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.best_price"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Selling Price</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.selling_price"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Commission Rate (%)</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.commission_rate"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Commission Amount</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.commission_amount"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h4 class="mt-4">Property Details</h4>
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>Bedrooms</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.bedrooms"/>
+                                    </td>
+                                    <td>
+                                        <strong>Facades</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.facades"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Living Area</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.living_area"/>
+                                    </td>
+                                    <td>
+                                        <strong>Garden Area</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.garden_area"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Total Area</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.total_area"/>
+                                    </td>
+                                    <td>
+                                        <strong>Garden Orientation</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.garden_orientation"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Garage</strong>
+                                    </td>
+                                    <td>
+                                        <span t-if="property.garage">Yes</span>
+                                        <span t-else="">No</span>
+                                    </td>
+                                    <td>
+                                        <strong>Garden</strong>
+                                    </td>
+                                    <td>
+                                        <span t-if="property.garden">Yes</span>
+                                        <span t-else="">No</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h4 class="mt-4">People</h4>
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>Salesperson</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.salesperson_id"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Buyer</strong>
+                                    </td>
+                                    <td>
+                                        <span t-field="property.buyer_id"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <t t-if="property.tag_ids">
+                            <h4 class="mt-4">Tags</h4>
+                            <p>
+                                <t t-foreach="property.tag_ids" t-as="tag">
+                                    <span t-field="tag.name"/>
+                                    <t t-if="not tag_last">
+                                        ,
+                                    </t>
+                                </t>
+                            </p>
+                        </t>
+                        <t t-if="property.description">
+                            <h4 class="mt-4">Description</h4>
+                            <p t-field="property.description"/>
+                        </t>
+                        <h4 class="mt-4">Offers</h4>
+                        <t t-if="property.offer_ids">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Partner</th>
+                                        <th>Price</th>
+                                        <th>Validity</th>
+                                        <th>Deadline</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="property.offer_ids" t-as="offer">
+                                        <td>
+                                            <span t-field="offer.partner_id"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="offer.price"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="offer.validity"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="offer.date_deadline"/>
+                                        </td>
+                                        <td>
+                                            <span
+                                                t-if="offer.status"
+                                                t-field="offer.status"
+                                            />
+                                            <span t-else="">
+                                                Pending
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+                        <t t-else="">
+                            <p>
+                                No offers have been received for this property yet.
+                            </p>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
